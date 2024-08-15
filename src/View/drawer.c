@@ -19,10 +19,10 @@ void _setUpShape(Shape shape, int shapeIndex, GLuint* VAO, GLuint* VBO) {
     int totalVals = DIMENTION_COUNT + COLOR_COUNT;
 
     int neededWords = shape.verticesCount * totalVals;
-    assert(neededWords <= PROPERTIES_MAX_COUNT);
+    assert(neededWords <= PROPERTIES_MAX_COUNT && "Too many vertices in one shape!");
     int neededSpace = shape.verticesCount * sizeof(GLfloat) * totalVals;
 
-    mapShapeToGLVertices(shape, shapeProperties, 2);
+    mapShapeToGLVertices(shape, shapeProperties, DIMENTION_COUNT);
 
     glBufferData(GL_ARRAY_BUFFER, neededSpace, shapeProperties, GL_DYNAMIC_DRAW);
 

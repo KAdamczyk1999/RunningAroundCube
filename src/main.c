@@ -30,14 +30,14 @@ int main() {
 
     runOnEntry();
 
-    glClearColor(.0f, .0f, .0f, .0f);
+    glClearColor(1.0f, 1.0f, 1.0f, .0f);
     glClear(GL_COLOR_BUFFER_BIT);
     glfwSwapBuffers(window);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
-        glClearColor(.0f, .0f, .0f, .0f);
+        glClearColor(1.0f, 1.0f, 1.0f, .0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         runMainLoop();
