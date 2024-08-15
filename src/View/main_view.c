@@ -1,12 +1,32 @@
 #include "View/main_view.h"
 
 #include <math.h>
+#include <stdlib.h>
 
+#include "LinearAlgebra/lin_alg.h"
 #include "View/drawer.h"
 #include "View/shaders.h"
 #include "View/shape_stash.h"
 
 GLuint shaderProgram;
+
+void _setUpOperator(Matrix* op, void (*f)(Matrix*, float)) {
+    op->values = (float**)malloc(3 * sizeof(float*));
+    for (int i = 0; i < 3; i++) op->values[i] = (float*)malloc(3 * sizeof(float));
+    op->columnCount = 3;
+    op->rowCount = 3;
+
+    f(op, 1.0f);
+}
+
+Matrix yOp;
+
+void _freeOperators() {
+    for (int i = 0; i < 3; i++) {
+        free(yOp.values[i]);
+    }
+    free(yOp.values);
+}
 
 void runOnEntry() {
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -28,8 +48,16 @@ void runOnEntry() {
     glDeleteShader(fragmentShader);
 
     glEnable(GL_COLOR_MATERIAL);
+
+    _setUpOperator(&yOp, generateYRotationOperator);
 }
 
-void runMainLoop() { drawCube(cube, shaderProgram); }
+void runMainLoop() {
+    drawCube(cube, shaderProgram);
+    rotateObserver(yOp);
+}
 
-void runOnExit() { glDeleteProgram(shaderProgram); }
+void runOnExit() {
+    glDeleteProgram(shaderProgram);
+    _freeOperators();
+}

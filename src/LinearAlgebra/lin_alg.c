@@ -121,12 +121,17 @@ float calculateDist(Point p1, Point p2) {
     return sqrtf(powf(p1.x - p2.x, 2.0f) + powf(p1.y - p2.y, 2.0f) + powf(p1.z - p2.z, 2.0f));
 }
 
-float calculateRectProjectionArea(Rect rect, Point pointOfView) {
+Rect projectRect(Rect rect, Point pointOfView) {
     Point plainPoints[2];
     _findOthrogonalPoints(plainPoints, pointOfView);
     for (int i = 0; i < 4; i++) {
         rect.vertices[i] = _calculateProjection(rect.vertices[i], plainPoints);
     }
+    return rect;
+}
+
+float calculateRectProjectionArea(Rect rect, Point pointOfView) {
+    rect = projectRect(rect, pointOfView);
     float ds[2];
     Point lines[2];
     const int parameterCount = sizeof(ds) / sizeof(ds[0]);

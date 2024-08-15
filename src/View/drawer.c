@@ -6,7 +6,6 @@
 #include <string.h>
 
 #include "Common/types.h"
-#include "LinearAlgebra/lin_alg.h"
 
 #define PROPERTIES_MAX_COUNT 36000
 
@@ -124,6 +123,10 @@ int _compareRectsZ(const void* a, const void* b) {
     return _cmpf(_calculateMean(valsA, 4), _calculateMean(valsB, 4));
 }
 
+Point observer = {0.001f, .001f, 1.0f};
+
+void rotateObserver(Matrix op) { applyOperatorOn3dPoint(op, &observer); }
+
 const Point lightSource = {-1.0f, 1.0f, 2.0f};
 int _compareRectsLightSourceProx(const void* a, const void* b) {
     Rect* rectA = (Rect*)a;
@@ -132,6 +135,16 @@ int _compareRectsLightSourceProx(const void* a, const void* b) {
                       calculateDist(rectA->vertices[2], lightSource), calculateDist(rectA->vertices[3], lightSource)};
     float valsB[4] = {calculateDist(rectB->vertices[0], lightSource), calculateDist(rectB->vertices[1], lightSource),
                       calculateDist(rectB->vertices[2], lightSource), calculateDist(rectB->vertices[3], lightSource)};
+    return _cmpf(_calculateMean(valsA, 4), _calculateMean(valsB, 4));
+}
+
+int _compareObserverProx(const void* a, const void* b) {
+    Rect* rectA = (Rect*)a;
+    Rect* rectB = (Rect*)b;
+    float valsA[4] = {calculateDist(rectA->vertices[0], observer), calculateDist(rectA->vertices[1], observer),
+                      calculateDist(rectA->vertices[2], observer), calculateDist(rectA->vertices[3], observer)};
+    float valsB[4] = {calculateDist(rectB->vertices[0], observer), calculateDist(rectB->vertices[1], observer),
+                      calculateDist(rectB->vertices[2], observer), calculateDist(rectB->vertices[3], observer)};
     return _cmpf(_calculateMean(valsA, 4), _calculateMean(valsB, 4));
 }
 
@@ -147,7 +160,9 @@ void _lightRects(Rect* rects) {
     }
 }
 
+#include <stdio.h>
 void drawCube(Cube cube, GLuint shaderPorgram) {
+    printf("%.2f, %.2f, %.2f\n", observer.x, observer.y, observer.z);
     Rect rects[CUBE_RECTS_COUNT];
     memcpy(rects[0].vertices, cube.vertices, 4 * sizeof(Point));
     memcpy(rects[1].vertices, &(cube.vertices[4]), 4 * sizeof(Point));
@@ -166,7 +181,10 @@ void drawCube(Cube cube, GLuint shaderPorgram) {
     qsort(rects, CUBE_RECTS_COUNT, sizeof(Rect), _compareRectsLightSourceProx);
     _lightRects(rects);
 
-    qsort(rects, CUBE_RECTS_COUNT, sizeof(Rect), _compareRectsZ);
+    qsort(rects, CUBE_RECTS_COUNT, sizeof(Rect), _compareObserverProx);
 
-    for (int i = 0; i < CUBE_RECTS_COUNT; i++) drawRect(rects[i], shaderPorgram);
+    for (int i = 0; i < CUBE_RECTS_COUNT; i++) {
+        rects[i] = projectRect(rects[i], observer);
+        drawRect(rects[i], shaderPorgram);
+    }
 }
