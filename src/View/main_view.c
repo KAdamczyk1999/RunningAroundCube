@@ -4,6 +4,7 @@
 
 #include "View/drawer.h"
 #include "View/shaders.h"
+#include "View/shape_stash.h"
 
 GLuint shaderProgram;
 
@@ -29,8 +30,6 @@ void runOnEntry() {
     glEnable(GL_COLOR_MATERIAL);
 }
 
-void _rotateObjects(Point pointOfRotation) {}
-
-void runMainLoop() {}
+void runMainLoop() { drawCube(cube, shaderProgram); }
 
 void runOnExit() { glDeleteProgram(shaderProgram); }
