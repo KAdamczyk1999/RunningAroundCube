@@ -1,0 +1,11 @@
+SOURCE_FILES=$(wildcard ../src/*.c)\
+			 $(wildcard ../src/Geometry/*.c)\
+			 $(wildcard ../src/View/*.c)\
+			 $(wildcard ../src/LinearAlgebra/*.c)\
+
+running_around_cube:
+	gcc -g --std=c99 -I../include -L../lib $(SOURCE_FILES) -lglfw3dll -o running_around_cube
+
+run:
+	make
+	./running_around_cube
