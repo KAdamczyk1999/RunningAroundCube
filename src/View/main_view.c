@@ -1,31 +1,33 @@
 #include "View/main_view.h"
 
+#include <conio.h>
 #include <math.h>
 #include <stdlib.h>
 
-#include "LinearAlgebra/lin_alg.h"
 #include "View/drawer.h"
 #include "View/shaders.h"
 #include "View/shape_stash.h"
 
 GLuint shaderProgram;
 
-void _setUpOperator(Matrix* op, void (*f)(Matrix*, float)) {
+void setUpOperator(Matrix* op, void (*f)(Matrix*, float), float angle) {
     op->values = (float**)malloc(3 * sizeof(float*));
     for (int i = 0; i < 3; i++) op->values[i] = (float*)malloc(3 * sizeof(float));
     op->columnCount = 3;
     op->rowCount = 3;
 
-    f(op, 1.0f);
+    f(op, angle);
 }
 
+Matrix yOpL;
+Matrix yOpR;
 Matrix yOp;
 
-void _freeOperators() {
+void freeOperator(Matrix* op) {
     for (int i = 0; i < 3; i++) {
-        free(yOp.values[i]);
+        free(op->values[i]);
     }
-    free(yOp.values);
+    free(op->values);
 }
 
 void runOnEntry() {
@@ -49,15 +51,28 @@ void runOnEntry() {
 
     glEnable(GL_COLOR_MATERIAL);
 
-    _setUpOperator(&yOp, generateYRotationOperator);
+    setUpOperator(&yOpL, generateYRotationOperator, 1.0f);
+    setUpOperator(&yOpR, generateYRotationOperator, -1.0f);
+}
+
+void _evaluateOperator() {
+    char ch = getch();
+    if (ch == 'd')
+        yOp = yOpR;
+    else if (ch == 'a')
+        yOp = yOpL;
 }
 
 void runMainLoop() {
     drawCube(cube, shaderProgram);
-    rotateObserver(yOp);
+    if (kbhit()) {
+        _evaluateOperator();
+        rotateObserver(yOp);
+    }
 }
 
 void runOnExit() {
     glDeleteProgram(shaderProgram);
-    _freeOperators();
+    freeOperator(&yOpL);
+    freeOperator(&yOpR);
 }

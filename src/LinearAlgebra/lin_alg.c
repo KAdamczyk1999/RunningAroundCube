@@ -5,14 +5,9 @@
 #include <stdlib.h>
 
 void applyOperatorOn3dPoint(Matrix op, Point* point) {
-    Point temporaryPoint = {0.0f, 0.0f, 0.0f};
-    temporaryPoint.x = point->x * op.values[0][0] + point->y * op.values[0][1] + point->z * op.values[0][2];
-    temporaryPoint.y = point->x * op.values[1][0] + point->y * op.values[1][1] + point->z * op.values[1][2];
-    temporaryPoint.z = point->x * op.values[2][0] + point->y * op.values[2][1] + point->z * op.values[2][2];
-
-    point->x = temporaryPoint.x;
-    point->y = temporaryPoint.y;
-    point->z = temporaryPoint.z;
+    point->x = point->x * op.values[0][0] + point->y * op.values[0][1] + point->z * op.values[0][2];
+    point->y = point->x * op.values[1][0] + point->y * op.values[1][1] + point->z * op.values[1][2];
+    point->z = point->x * op.values[2][0] + point->y * op.values[2][1] + point->z * op.values[2][2];
 }
 
 void generateXRotationOperator(Matrix* matrix, float angle) {
@@ -54,7 +49,7 @@ void generateZRotationOperator(Matrix* matrix, float angle) {
     matrix->values[2][2] = 1;
 }
 
-float _calculateMag(Point p) { return sqrt(powf(p.x, 2) + powf(p.y, 2) + powf(p.z, 2)); }
+float _calculateMag(Point p) { return sqrtf(powf(p.x, 2) + powf(p.y, 2) + powf(p.z, 2)); }
 
 Point _substractPoints(Point p1, Point p2) {
     Point diff;
@@ -86,20 +81,33 @@ float _calculateLineAngle(Point* lines) {
     return acos(_dotProd(lines[0], lines[1]) / (lineMags[0] * lineMags[1]));
 }
 
+Point _normalize(Point point) {
+    float mag = _calculateMag(point);
+    point.x /= mag;
+    point.y /= mag;
+    point.z /= mag;
+    return point;
+}
+
+Point _generateRandomPoint() {
+    Point point;
+    point.x = (float)rand();
+    point.y = (float)rand();
+    point.z = (float)rand();
+    return point;
+}
+
 void _findOthrogonalPoints(Point* points, Point point) {
     assert(point.x != .0f && point.y != .0f && "Plane vector has to have non-zero coeffs!");
-    points[0].x = 1.0f / point.x;
-    points[0].y = -1.0f / point.y;
-    points[0].z = 0;
+    point = _normalize(point);
+    Point anyPoint = _generateRandomPoint();
+    anyPoint = _normalize(anyPoint);
+
+    points[0] = _multiplyPoints(point, anyPoint);
+    points[0] = _normalize(points[0]);
 
     points[1] = _multiplyPoints(point, points[0]);
-
-    for (int i = 0; i < 2; i++) {
-        float mag = _calculateMag(points[i]);
-        points[i].x /= mag;
-        points[i].y /= mag;
-        points[i].z /= mag;
-    }
+    points[1] = _normalize(points[1]);
 }
 
 Point _calculateProjection(Point point, Point* plainPoints) {
@@ -121,17 +129,16 @@ float calculateDist(Point p1, Point p2) {
     return sqrtf(powf(p1.x - p2.x, 2.0f) + powf(p1.y - p2.y, 2.0f) + powf(p1.z - p2.z, 2.0f));
 }
 
-Rect projectRect(Rect rect, Point pointOfView) {
+void projectRect(Rect* rect, Point pointOfView) {
     Point plainPoints[2];
     _findOthrogonalPoints(plainPoints, pointOfView);
     for (int i = 0; i < 4; i++) {
-        rect.vertices[i] = _calculateProjection(rect.vertices[i], plainPoints);
+        rect->vertices[i] = _calculateProjection(rect->vertices[i], plainPoints);
     }
-    return rect;
 }
 
 float calculateRectProjectionArea(Rect rect, Point pointOfView) {
-    rect = projectRect(rect, pointOfView);
+    projectRect(&rect, pointOfView);
     float ds[2];
     Point lines[2];
     const int parameterCount = sizeof(ds) / sizeof(ds[0]);
