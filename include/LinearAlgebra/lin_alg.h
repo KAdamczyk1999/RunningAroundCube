@@ -18,6 +18,7 @@ void generateYRotationOperator(Matrix* matrix, float angle);
 void generateZRotationOperator(Matrix* matrix, float angle);
 float calculateDist(Point p1, Point p2);
 float calculateRectProjectionArea(Rect rect, Point pointOfVIew);
+void projectRect(Rect* rect, Point pointOfView);
 
 #ifdef UT
 float _calculateLineAngle(Point* lines);

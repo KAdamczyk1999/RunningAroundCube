@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "Common/types.h"
-#include "LinearAlgebra/lin_alg.h"
+#include "View/main_view.h"
 
 #define PROPERTIES_MAX_COUNT 36000
 
@@ -124,7 +124,11 @@ int _compareRectsZ(const void* a, const void* b) {
     return _cmpf(_calculateMean(valsA, 4), _calculateMean(valsB, 4));
 }
 
-const Point lightSource = {-1.0f, 1.0f, 2.0f};
+Point observer = {0.00000001f, .00000001f, 1.0f};
+
+void rotateObserver(Matrix op) { applyOperatorOn3dPoint(op, &observer); }
+
+const Point lightSource = {2.0f, 2.0f, 4.0f};
 int _compareRectsLightSourceProx(const void* a, const void* b) {
     Rect* rectA = (Rect*)a;
     Rect* rectB = (Rect*)b;
@@ -133,6 +137,16 @@ int _compareRectsLightSourceProx(const void* a, const void* b) {
     float valsB[4] = {calculateDist(rectB->vertices[0], lightSource), calculateDist(rectB->vertices[1], lightSource),
                       calculateDist(rectB->vertices[2], lightSource), calculateDist(rectB->vertices[3], lightSource)};
     return _cmpf(_calculateMean(valsA, 4), _calculateMean(valsB, 4));
+}
+
+int _compareObserverProx(const void* a, const void* b) {
+    Rect* rectA = (Rect*)a;
+    Rect* rectB = (Rect*)b;
+    float valsA[4] = {calculateDist(rectA->vertices[0], observer), calculateDist(rectA->vertices[1], observer),
+                      calculateDist(rectA->vertices[2], observer), calculateDist(rectA->vertices[3], observer)};
+    float valsB[4] = {calculateDist(rectB->vertices[0], observer), calculateDist(rectB->vertices[1], observer),
+                      calculateDist(rectB->vertices[2], observer), calculateDist(rectB->vertices[3], observer)};
+    return _cmpf(_calculateMean(valsB, 4), _calculateMean(valsA, 4));
 }
 
 #define CUBE_RECTS_COUNT 6
@@ -145,6 +159,27 @@ void _lightRects(Rect* rects) {
         }
         rects[i].color = (Color){.r = colorVals, .g = colorVals, .b = colorVals};
     }
+}
+
+float _getObserverAngle() {
+    float angle =
+        observer.z * observer.x > 0 ? fabs(atan(observer.z / observer.x)) : fabs(atan(observer.x / observer.z));
+    if (observer.x < 0.0f && observer.z < 0.0f)
+        return angle + PI;
+    else if (observer.x > 0.0f && observer.z < 0.0f)
+        return angle + 3 * PI / 2;
+    else if (observer.x < 0.0f && observer.z > 0.0f)
+        return angle + PI / 2;
+    else
+        return angle;
+}
+
+void _rotateRectsToCamera(Rect* rects) {
+    Matrix yOp;
+    setUpOperator(&yOp, generateYRotationOperator, _getObserverAngle() / PI * 180.f + 90.0f);
+    for (int i = 0; i < CUBE_RECTS_COUNT; i++)
+        for (int j = 0; j < 4; j++) applyOperatorOn3dPoint(yOp, &(rects[i].vertices[j]));
+    freeOperator(&yOp);
 }
 
 void drawCube(Cube cube, GLuint shaderPorgram) {
@@ -166,7 +201,8 @@ void drawCube(Cube cube, GLuint shaderPorgram) {
     qsort(rects, CUBE_RECTS_COUNT, sizeof(Rect), _compareRectsLightSourceProx);
     _lightRects(rects);
 
-    qsort(rects, CUBE_RECTS_COUNT, sizeof(Rect), _compareRectsZ);
-
+    qsort(rects, CUBE_RECTS_COUNT, sizeof(Rect), _compareObserverProx);
+    for (int i = 0; i < CUBE_RECTS_COUNT; i++) projectRect(&rects[i], observer);
+    _rotateRectsToCamera(rects);
     for (int i = 0; i < CUBE_RECTS_COUNT; i++) drawRect(rects[i], shaderPorgram);
 }
