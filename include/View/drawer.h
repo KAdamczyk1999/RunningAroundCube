@@ -15,8 +15,6 @@ void drawRect(Rect rect, GLuint shaderProgram);
 
 void drawCube(Cube cube, GLuint shaderProgram);
 
-void rotateObserver(Matrix op);
-
 #ifdef __cplusplus
 }
 #endif

@@ -1,11 +1,11 @@
 #include "View/drawer.h"
 
 #include <assert.h>
-#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "Common/types.h"
+#include "LinearAlgebra/physics.h"
 #include "View/main_view.h"
 
 #define PROPERTIES_MAX_COUNT 36000
@@ -101,82 +101,21 @@ void drawRect(Rect rect, GLuint shaderProgram) {
     drawShapeArray(triangles, 2, shaderProgram);
 }
 
-int _cmpf(float val1, float val2) {
-    if (val1 > val2)
-        return 1;
-    else if (val1 == val2)
-        return 0;
-    else
-        return -1;
-}
-
-float _calculateMean(float* vals, int valCount) {
-    float sum = .0f;
-    for (int i = 0; i < valCount; i++) sum += vals[i];
-    return sum / valCount;
-}
-
-int _compareRectsZ(const void* a, const void* b) {
-    Rect* rectA = (Rect*)a;
-    Rect* rectB = (Rect*)b;
-    float valsA[4] = {rectA->vertices[0].z, rectA->vertices[1].z, rectA->vertices[2].z, rectA->vertices[3].z};
-    float valsB[4] = {rectB->vertices[0].z, rectB->vertices[1].z, rectB->vertices[2].z, rectB->vertices[3].z};
-    return _cmpf(_calculateMean(valsA, 4), _calculateMean(valsB, 4));
-}
-
-Point observer = {0.00000001f, .00000001f, 1.0f};
-
-void rotateObserver(Matrix op) { applyOperatorOn3dPoint(op, &observer); }
-
-const Point lightSource = {2.0f, 2.0f, 4.0f};
-int _compareRectsLightSourceProx(const void* a, const void* b) {
-    Rect* rectA = (Rect*)a;
-    Rect* rectB = (Rect*)b;
-    float valsA[4] = {calculateDist(rectA->vertices[0], lightSource), calculateDist(rectA->vertices[1], lightSource),
-                      calculateDist(rectA->vertices[2], lightSource), calculateDist(rectA->vertices[3], lightSource)};
-    float valsB[4] = {calculateDist(rectB->vertices[0], lightSource), calculateDist(rectB->vertices[1], lightSource),
-                      calculateDist(rectB->vertices[2], lightSource), calculateDist(rectB->vertices[3], lightSource)};
-    return _cmpf(_calculateMean(valsA, 4), _calculateMean(valsB, 4));
-}
-
-int _compareObserverProx(const void* a, const void* b) {
-    Rect* rectA = (Rect*)a;
-    Rect* rectB = (Rect*)b;
-    float valsA[4] = {calculateDist(rectA->vertices[0], observer), calculateDist(rectA->vertices[1], observer),
-                      calculateDist(rectA->vertices[2], observer), calculateDist(rectA->vertices[3], observer)};
-    float valsB[4] = {calculateDist(rectB->vertices[0], observer), calculateDist(rectB->vertices[1], observer),
-                      calculateDist(rectB->vertices[2], observer), calculateDist(rectB->vertices[3], observer)};
-    return _cmpf(_calculateMean(valsB, 4), _calculateMean(valsA, 4));
-}
-
 #define CUBE_RECTS_COUNT 6
 void _lightRects(Rect* rects) {
     for (int i = 0; i < CUBE_RECTS_COUNT; i++) {
         float colorVals = .3f;
         if (i < CUBE_RECTS_COUNT / 2) {
-            float area = calculateRectProjectionArea(rects[i], lightSource);
+            float area = calculateRectProjectionArea(rects[i], getLightSource());
             colorVals += area * colorVals;
         }
         rects[i].color = (Color){.r = colorVals, .g = colorVals, .b = colorVals};
     }
 }
 
-float _getObserverAngle() {
-    float angle =
-        observer.z * observer.x > 0 ? fabs(atan(observer.z / observer.x)) : fabs(atan(observer.x / observer.z));
-    if (observer.x < 0.0f && observer.z < 0.0f)
-        return angle + PI;
-    else if (observer.x > 0.0f && observer.z < 0.0f)
-        return angle + 3 * PI / 2;
-    else if (observer.x < 0.0f && observer.z > 0.0f)
-        return angle + PI / 2;
-    else
-        return angle;
-}
-
 void _rotateRectsToCamera(Rect* rects) {
     Matrix yOp;
-    setUpOperator(&yOp, generateYRotationOperator, _getObserverAngle() / PI * 180.f + 90.0f);
+    setUpOperator(&yOp, generateYRotationOperator, getObserverAngle() / PI * 180.f + 90.0f);
     for (int i = 0; i < CUBE_RECTS_COUNT; i++)
         for (int j = 0; j < 4; j++) applyOperatorOn3dPoint(yOp, &(rects[i].vertices[j]));
     freeOperator(&yOp);
@@ -198,11 +137,11 @@ void drawCube(Cube cube, GLuint shaderPorgram) {
     rects[5].vertices[2] = cube.vertices[7];
     rects[5].vertices[3] = cube.vertices[4];
 
-    qsort(rects, CUBE_RECTS_COUNT, sizeof(Rect), _compareRectsLightSourceProx);
+    qsort(rects, CUBE_RECTS_COUNT, sizeof(Rect), compareRectsLightSourceProx);
     _lightRects(rects);
 
-    qsort(rects, CUBE_RECTS_COUNT, sizeof(Rect), _compareObserverProx);
-    for (int i = 0; i < CUBE_RECTS_COUNT; i++) projectRect(&rects[i], observer);
+    qsort(rects, CUBE_RECTS_COUNT, sizeof(Rect), compareObserverProx);
+    for (int i = 0; i < CUBE_RECTS_COUNT; i++) projectRect(&rects[i], getObserver());
     _rotateRectsToCamera(rects);
     for (int i = 0; i < CUBE_RECTS_COUNT; i++) drawRect(rects[i], shaderPorgram);
 }
