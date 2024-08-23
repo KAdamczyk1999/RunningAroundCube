@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "LinearAlgebra/physics.h"
 #include "View/drawer.h"
 #include "View/shaders.h"
 #include "View/shape_stash.h"
@@ -21,7 +22,8 @@ void setUpOperator(Matrix* op, void (*f)(Matrix*, float), float angle) {
 
 Matrix yOpL;
 Matrix yOpR;
-Matrix yOp;
+Matrix yOpN;
+Matrix op;
 
 void freeOperator(Matrix* op) {
     for (int i = 0; i < 3; i++) {
@@ -53,21 +55,29 @@ void runOnEntry() {
 
     setUpOperator(&yOpL, generateYRotationOperator, 1.0f);
     setUpOperator(&yOpR, generateYRotationOperator, -1.0f);
+    setUpOperator(&yOpN, generateYRotationOperator, .0f);
 }
 
-void _evaluateOperator() {
+enum Action { JUMP = ' ', LEFT = 'a', RIGHT = 'd' };
+
+void _evaluateAction() {
     char ch = getch();
-    if (ch == 'd')
-        yOp = yOpR;
-    else if (ch == 'a')
-        yOp = yOpL;
+    if (ch == RIGHT)
+        op = yOpR;
+    else if (ch == LEFT)
+        op = yOpL;
+    else if (ch == JUMP) {
+        initializeJump();
+        op = yOpN;
+    }
 }
 
 void runMainLoop() {
+    evaluateJump();
     drawCube(cube, shaderProgram);
     if (kbhit()) {
-        _evaluateOperator();
-        rotateObserver(yOp);
+        _evaluateAction();
+        rotateObserver(op);
     }
 }
 
@@ -75,4 +85,5 @@ void runOnExit() {
     glDeleteProgram(shaderProgram);
     freeOperator(&yOpL);
     freeOperator(&yOpR);
+    freeOperator(&yOpN);
 }
