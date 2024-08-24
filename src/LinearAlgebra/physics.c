@@ -4,6 +4,8 @@
 
 #define BASE_COORD 1e-6
 const float initialJumpingVelocity = .05f;
+const float crouchingVelocity = .05;
+const float crouchingFinalPosition = -0.3;
 const float gravitationalAcceleration = .003f;
 float observerVerticalVelocity = 0.0f;
 
@@ -51,10 +53,11 @@ int compareObserverProx(const void* a, const void* b) {
 }
 
 void initializeJump() {
-    if (observer.y <= BASE_COORD) observerVerticalVelocity = initialJumpingVelocity;
+    if (observer.y <= BASE_COORD && observer.y >= -BASE_COORD) observerVerticalVelocity = initialJumpingVelocity;
 }
 
 void evaluateJump() {
+    if (observerVerticalVelocity == 0) return;
     observer.y += observerVerticalVelocity;
     observerVerticalVelocity -= gravitationalAcceleration;
     if (observer.y <= BASE_COORD) {
@@ -63,6 +66,24 @@ void evaluateJump() {
     }
 }
 
+void _evaluateCrouchDown() {
+    if (observer.y > BASE_COORD) return;
+    observer.y -= crouchingVelocity;
+    if (observer.y < crouchingFinalPosition) observer.y = crouchingFinalPosition;
+}
+
+void _evaluateStandUp() {
+    if (observer.y >= BASE_COORD) return;
+    observer.y += crouchingVelocity;
+    if (observer.y > BASE_COORD) observer.y = BASE_COORD;
+}
+
+void evaluateCrouch(CrouchingState state) {
+    if (state == STANDING_UP)
+        _evaluateStandUp();
+    else if (state == CROUCHING_DOWN)
+        _evaluateCrouchDown();
+}
 const Point lightSource = {2.0f, 2.0f, 4.0f};
 Point getLightSource() { return lightSource; }
 

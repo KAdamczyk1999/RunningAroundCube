@@ -56,12 +56,26 @@ void runOnEntry() {
     setUpOperator(&yOpL, generateYRotationOperator, 1.0f);
     setUpOperator(&yOpR, generateYRotationOperator, -1.0f);
     setUpOperator(&yOpN, generateYRotationOperator, .0f);
+    op = yOpN;
 }
 
-enum Action { JUMP = ' ', LEFT = 'a', RIGHT = 'd' };
+enum Action { CROUCH = 'c', JUMP = ' ', LEFT = 'a', RIGHT = 'd' };
 
+int nonActionCounter = 0;
+int const crouchStandUpDelay = 30;
 void _evaluateAction() {
+    if (!kbhit()) {
+        if (nonActionCounter++ > crouchStandUpDelay) evaluateCrouch(STANDING_UP);
+        return;
+    }
+    nonActionCounter = 0;
     char ch = getch();
+    if (ch == CROUCH) {
+        evaluateCrouch(CROUCHING_DOWN);
+    } else {
+        evaluateCrouch(STANDING_UP);
+    }
+
     if (ch == RIGHT)
         op = yOpR;
     else if (ch == LEFT)
@@ -69,16 +83,16 @@ void _evaluateAction() {
     else if (ch == JUMP) {
         initializeJump();
         op = yOpN;
+    } else {
+        op = yOpN;
     }
+    rotateObserver(op);
 }
 
 void runMainLoop() {
     evaluateJump();
+    _evaluateAction();
     drawCube(cube, shaderProgram);
-    if (kbhit()) {
-        _evaluateAction();
-        rotateObserver(op);
-    }
 }
 
 void runOnExit() {

@@ -18,3 +18,7 @@ int compareObserverProx(const void* a, const void* b);
 Point getLightSource();
 
 int compareRectsLightSourceProx(const void* a, const void* b);
+
+void evaluateCrouch();
+
+typedef enum { CROUCHING_DOWN, STANDING_UP } CrouchingState;
