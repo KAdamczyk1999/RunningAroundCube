@@ -3,6 +3,7 @@
 #include <conio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "LinearAlgebra/physics.h"
 #include "View/drawer.h"
@@ -10,6 +11,11 @@
 #include "View/shape_stash.h"
 
 GLuint shaderProgram;
+
+void _delay(int millis) {
+    int t = clock();
+    while (clock() - t < millis);
+}
 
 void setUpOperator(Matrix* op, void (*f)(Matrix*, float), float angle) {
     op->values = (float**)malloc(3 * sizeof(float*));
@@ -90,6 +96,7 @@ void _evaluateAction() {
 }
 
 void runMainLoop() {
+    _delay(20);
     evaluateJump();
     _evaluateAction();
     drawCube(cube, shaderProgram);
