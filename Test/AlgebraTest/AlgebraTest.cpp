@@ -90,10 +90,10 @@ TEST_F(AlgebraShould, calculateLineAngleProperly) {
 }
 
 TEST_F(AlgebraShould, findOrthogonalVectorProperly) {
-    Point ortVecs[2];
+    Point ortVecs[2] = {{.0f, .0f, .0f}, {.0f, .0f, .0f}};
     Point vec = {1.0f, 2.5f, 4.0f};
     _findOthrogonalPoints(ortVecs, vec);
-    EXPECT_EQ(_dotProd(ortVecs[0], vec), 0.0f);
-    EXPECT_EQ(_dotProd(ortVecs[1], vec), 0.0f);
-    EXPECT_EQ(_dotProd(ortVecs[0], ortVecs[1]), 0.0f);
+    EXPECT_NEAR(_dotProd(ortVecs[0], vec), 0.0f, .000001f);
+    EXPECT_NEAR(_dotProd(ortVecs[1], vec), 0.0f, .000001f);
+    EXPECT_NEAR(_dotProd(ortVecs[0], ortVecs[1]), 0.0f, .000001f);
 }
