@@ -3,11 +3,14 @@
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 void applyOperatorOn3dPoint(Matrix op, Point* point) {
-    point->x = point->x * op.values[0][0] + point->y * op.values[0][1] + point->z * op.values[0][2];
-    point->y = point->x * op.values[1][0] + point->y * op.values[1][1] + point->z * op.values[1][2];
-    point->z = point->x * op.values[2][0] + point->y * op.values[2][1] + point->z * op.values[2][2];
+    Point tempPoint;
+    tempPoint.x = point->x * op.values[0][0] + point->y * op.values[0][1] + point->z * op.values[0][2];
+    tempPoint.y = point->x * op.values[1][0] + point->y * op.values[1][1] + point->z * op.values[1][2];
+    tempPoint.z = point->x * op.values[2][0] + point->y * op.values[2][1] + point->z * op.values[2][2];
+    memcpy(point, &tempPoint, sizeof(Point));
 }
 
 void generateXRotationOperator(Matrix* matrix, float angle) {
