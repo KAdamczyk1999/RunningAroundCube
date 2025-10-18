@@ -91,6 +91,25 @@ void runOnEntry() {
 
 enum Action { CROUCH = 'c', JUMP = ' ', LEFT = 'a', RIGHT = 'd' };
 
+#include <stdbool.h>
+#include <sys/ioctl.h>
+#include <termios.h>
+bool kbhit() {
+    struct termios term;
+    tcgetattr(0, &term);
+
+    struct termios term2 = term;
+    term2.c_lflag &= ~ICANON;
+    tcsetattr(0, TCSANOW, &term2);
+
+    int byteswaiting;
+    ioctl(0, FIONREAD, &byteswaiting);
+
+    tcsetattr(0, TCSANOW, &term);
+
+    return byteswaiting > 0;
+}
+
 int nonActionCounter = 0;
 int const crouchStandUpDelay = 30;
 void _evaluateAction() {
