@@ -1,24 +1,55 @@
 # Running Around Cube
 
 ## Run project
-1. Install MSYS2.
-2. Add MSYS2 user bin path to environmental variables.
-3. Install gcc and make through MSYS2.
-4. Go to Project bin folder.
-5. Run "make run" to quickly compile and immediately run produced .exe file.
-6. If it doesn't succeed, try changing MakeFile's name to "makefile".
-7. If that does not help compile manually: "make -f makefile" to compile.
-8. Then run produced "test.exe" file.
+For linux, following packages are recomended:
+```console
+make freeglut3-dev libglew-dev libglew2.2 libmagick++-dev libassimp-dev libglfw3 libglfw3-dev
+```
+
+Install MSYS2 (if on windows).
+
+Add MSYS2 user bin path to environmental variables.
+
+Install gcc and make through MSYS2:
+```console
+pacman -S mingw-w64-x86_64-gcc
+```
+If you are on linux, you can instead install gcc through your package manager.
+
+Run
+```console
+make windows
+```
+or
+```console
+make linux
+```
+depending on your operating system. After build succeeds, run
+```console
+make run
+```
+to execute.
 
 ## Run Unit Tests
-1. Install python.
-2. Install meson and ninja through pip.
-3. Install needed components through MSYS2:
-    1. mingw-w64-x86_64-clang.
-    2. mingw-w64-x86_64-gtest.
-    3. mingw-w64-x86_64-pkg-config.
-    4. mingw-w64-x86_64-compiler-rt.
-4. Add MSYS2 mingw64 bin folder to environmental variables.
-5. Install gcovr through pip.
-6. In project directory run "meson setup -Db_coverage=true --native-file=llvm.ini out/UT".
-7. To test run "ninja test -C out/UT"
+Install python.
+
+Install meson and ninja through pip, or your package manager, if you are on linux.
+
+Install needed components through MSYS2:
+```console
+pacman -S mingw-w64-x86_64-gtest
+pacman -S mingw-w64-x86_64-pkg-config
+``` 
+On linux, install gtest and pkg-config through your package manager.
+
+Add MSYS2 mingw64 bin folder to environmental variables.
+
+In project directory run
+```console
+meson setup -Db_coverage=true --native-file=llvm.ini out/UT
+```
+
+To test run
+```console
+ninja test -C out/UT
+```

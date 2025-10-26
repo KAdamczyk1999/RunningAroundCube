@@ -1,7 +1,7 @@
 #include "View/main_view.h"
 
-#include <conio.h>
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -9,6 +9,30 @@
 #include "View/drawer.h"
 #include "View/shaders.h"
 #include "View/shape_stash.h"
+
+#ifdef LINUX
+#include <stdbool.h>
+#include <sys/ioctl.h>
+#include <termios.h>
+bool kbhit() {
+    struct termios term;
+    tcgetattr(0, &term);
+
+    struct termios term2 = term;
+    term2.c_lflag &= ~ICANON;
+    tcsetattr(0, TCSANOW, &term2);
+
+    int byteswaiting;
+    ioctl(0, FIONREAD, &byteswaiting);
+
+    tcsetattr(0, TCSANOW, &term);
+
+    return byteswaiting > 0;
+}
+#endif
+#ifdef WINDOWS
+#include <conio.h>
+#endif
 
 GLuint shaderProgram;
 
@@ -75,7 +99,7 @@ void _evaluateAction() {
         return;
     }
     nonActionCounter = 0;
-    char ch = getch();
+    char ch = getc(stdin);
     if (ch == CROUCH) {
         evaluateCrouch(CROUCHING_DOWN);
     } else {
