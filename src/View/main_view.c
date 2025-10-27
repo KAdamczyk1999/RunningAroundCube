@@ -11,6 +11,7 @@
 #include "View/shape_stash.h"
 
 #ifdef LINUX
+#define GET_CHARACTER() getc(stdin)
 #include <stdbool.h>
 #include <sys/ioctl.h>
 #include <termios.h>
@@ -31,6 +32,7 @@ bool kbhit() {
 }
 #endif
 #ifdef WINDOWS
+#define GET_CHARACTER getch
 #include <conio.h>
 #endif
 
@@ -99,7 +101,7 @@ void _evaluateAction() {
         return;
     }
     nonActionCounter = 0;
-    char ch = getc(stdin);
+    char ch = GET_CHARACTER();
     if (ch == CROUCH) {
         evaluateCrouch(CROUCHING_DOWN);
     } else {
