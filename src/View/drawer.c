@@ -107,7 +107,7 @@ static void _lightRects(Rect* rects) {
         float colorVals = .3f;
         if (i < CUBE_RECTS_COUNT / 2) {
             float area = calculateRectProjectionArea(rects[i], getLightSource());
-            colorVals += area * colorVals;
+            colorVals += area / calculateRectArea(rects[i]) * colorVals;
         }
         rects[i].color = (Color){.r = colorVals, .g = colorVals, .b = colorVals};
     }
