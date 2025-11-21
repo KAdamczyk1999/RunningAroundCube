@@ -22,3 +22,7 @@ int compareRectsLightSourceProx(const void* a, const void* b);
 typedef enum { CROUCHING_DOWN, STANDING_UP } CrouchingState;
 
 void evaluateCrouch(CrouchingState state);
+
+typedef enum { DIR_FORWARD, DIR_BACKWARD } MoveDirection;
+
+void moveObserver(MoveDirection dir);

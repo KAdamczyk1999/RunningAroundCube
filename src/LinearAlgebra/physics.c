@@ -1,6 +1,7 @@
 #include "LinearAlgebra/physics.h"
 
 #include <math.h>
+#include <stdbool.h>
 
 #define BASE_COORD 1e-6
 const float initialJumpingVelocity = .05f;
@@ -9,7 +10,7 @@ const float crouchingFinalPosition = -0.3;
 const float gravitationalAcceleration = .003f;
 float observerVerticalVelocity = 0.0f;
 
-int _cmpf(float val1, float val2) {
+static int _cmpf(float val1, float val2) {
     if (val1 > val2)
         return 1;
     else if (val1 == val2)
@@ -18,7 +19,7 @@ int _cmpf(float val1, float val2) {
         return -1;
 }
 
-float _calculateMean(float* vals, int valCount) {
+static float _calculateMean(float* vals, int valCount) {
     float sum = .0f;
     for (int i = 0; i < valCount; i++) sum += vals[i];
     return sum / valCount;
@@ -66,13 +67,27 @@ void evaluateJump() {
     }
 }
 
-void _evaluateCrouchDown() {
+void moveObserver(MoveDirection dir) {
+    float angle = getObserverAngle();
+    float factor = .003f;
+    if (dir == DIR_FORWARD) factor = -factor;
+    bool xPositive = observer.x >= 0;
+    bool zPositive = observer.z >= 0;
+    float newZ = observer.z + factor * sin(angle);
+    float newX = observer.x + factor * cos(angle);
+    if ((newX >= 0) != xPositive) return;
+    if ((newZ >= 0) != zPositive) return;
+    observer.x = newX;
+    observer.z = newZ;
+}
+
+static void _evaluateCrouchDown() {
     if (observer.y > BASE_COORD) return;
     observer.y -= crouchingVelocity;
     if (observer.y < crouchingFinalPosition) observer.y = crouchingFinalPosition;
 }
 
-void _evaluateStandUp() {
+static void _evaluateStandUp() {
     if (observer.y >= BASE_COORD) return;
     observer.y += crouchingVelocity;
     if (observer.y > BASE_COORD) observer.y = BASE_COORD;
