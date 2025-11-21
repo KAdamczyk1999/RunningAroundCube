@@ -140,8 +140,7 @@ void projectRect(Rect* rect, Point pointOfView) {
     }
 }
 
-float calculateRectProjectionArea(Rect rect, Point pointOfView) {
-    projectRect(&rect, pointOfView);
+float calculateRectArea(Rect rect) {
     float ds[2];
     Point lines[2];
     const int parameterCount = sizeof(ds) / sizeof(ds[0]);
@@ -149,6 +148,10 @@ float calculateRectProjectionArea(Rect rect, Point pointOfView) {
         ds[i] = calculateDist(rect.vertices[i], rect.vertices[i + 2]);
         lines[i] = _substractPoints(rect.vertices[i], rect.vertices[i + 2]);
     }
-
     return ds[0] * ds[1] * sin(_calculateLineAngle(lines)) * .5f;
+}
+
+float calculateRectProjectionArea(Rect rect, Point pointOfView) {
+    projectRect(&rect, pointOfView);
+    return calculateRectArea(rect);
 }
