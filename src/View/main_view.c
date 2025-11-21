@@ -38,7 +38,7 @@ bool kbhit() {
 
 GLuint shaderProgram;
 
-void _delay(int millis) {
+static void _delay(int millis) {
     int t = clock();
     while (clock() - t < millis);
 }
@@ -91,33 +91,43 @@ void runOnEntry() {
     op = yOpN;
 }
 
-enum Action { CROUCH = 'c', JUMP = ' ', LEFT = 'a', RIGHT = 'd' };
+enum Action { CROUCH = 'c', JUMP = ' ', LEFT = 'a', RIGHT = 'd', BACK = 's', FORWARD = 'w' };
+
+static void _evaluatePressedButton(char button) {
+    op = yOpN;
+    switch (button) {
+        case CROUCH:
+            evaluateCrouch(CROUCHING_DOWN);
+            return;
+        case RIGHT:
+            op = yOpR;
+            break;
+        case LEFT:
+            op = yOpL;
+            break;
+        case JUMP:
+            initializeJump();
+            break;
+        case BACK:
+            moveObserver(DIR_BACKWARD);
+            break;
+        case FORWARD:
+            moveObserver(DIR_FORWARD);
+            break;
+    }
+    evaluateCrouch(STANDING_UP);
+}
 
 int nonActionCounter = 0;
 int const crouchStandUpDelay = 30;
-void _evaluateAction() {
+static void _evaluateAction() {
     if (!kbhit()) {
         if (nonActionCounter++ > crouchStandUpDelay) evaluateCrouch(STANDING_UP);
         return;
     }
     nonActionCounter = 0;
-    char ch = GET_CHARACTER();
-    if (ch == CROUCH) {
-        evaluateCrouch(CROUCHING_DOWN);
-    } else {
-        evaluateCrouch(STANDING_UP);
-    }
-
-    if (ch == RIGHT)
-        op = yOpR;
-    else if (ch == LEFT)
-        op = yOpL;
-    else if (ch == JUMP) {
-        initializeJump();
-        op = yOpN;
-    } else {
-        op = yOpN;
-    }
+    char button = GET_CHARACTER();
+    _evaluatePressedButton(button);
     rotateObserver(op);
 }
 

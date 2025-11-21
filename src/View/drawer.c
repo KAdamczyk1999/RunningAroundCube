@@ -10,7 +10,7 @@
 
 #define PROPERTIES_MAX_COUNT 36000
 
-void _setUpShape(Shape shape, int shapeIndex, GLuint* VAO, GLuint* VBO) {
+static void _setUpShape(Shape shape, int shapeIndex, GLuint* VAO, GLuint* VBO) {
     GLfloat shapeProperties[PROPERTIES_MAX_COUNT];
 
     glBindVertexArray(VAO[shapeIndex]);
@@ -33,7 +33,7 @@ void _setUpShape(Shape shape, int shapeIndex, GLuint* VAO, GLuint* VBO) {
     glEnableVertexAttribArray(1);
 }
 
-void _drawShape(Shape shape, int shapeIndex, GLuint* VAO) {
+static void _drawShape(Shape shape, int shapeIndex, GLuint* VAO) {
     glBindVertexArray(VAO[shapeIndex]);
     glDrawArrays(shape.drawingMethod, 0, shape.verticesCount);
 }
@@ -102,7 +102,7 @@ void drawRect(Rect rect, GLuint shaderProgram) {
 }
 
 #define CUBE_RECTS_COUNT 6
-void _lightRects(Rect* rects) {
+static void _lightRects(Rect* rects) {
     for (int i = 0; i < CUBE_RECTS_COUNT; i++) {
         float colorVals = .3f;
         if (i < CUBE_RECTS_COUNT / 2) {
@@ -113,7 +113,7 @@ void _lightRects(Rect* rects) {
     }
 }
 
-void _rotateRectsToCamera(Rect* rects) {
+static void _rotateRectsToCamera(Rect* rects) {
     Matrix yOp;
     setUpOperator(&yOp, generateYRotationOperator, getObserverAngle() / PI * 180.f + 90.0f);
     for (int i = 0; i < CUBE_RECTS_COUNT; i++)
@@ -121,7 +121,19 @@ void _rotateRectsToCamera(Rect* rects) {
     freeOperator(&yOp);
 }
 
+static void _scaleCube(Cube* cube) {
+    Point observer = getObserver();
+    float observerProx = observer.x * observer.x + observer.z * observer.z;
+    float scale = 1.0f / observerProx;
+    for (int i = 0; i < sizeof(Cube) / sizeof(Point); i++) {
+        cube->vertices[i].x *= scale;
+        cube->vertices[i].y *= scale;
+        cube->vertices[i].z *= scale;
+    }
+}
+
 void drawCube(Cube cube, GLuint shaderPorgram) {
+    _scaleCube(&cube);
     Rect rects[CUBE_RECTS_COUNT];
     memcpy(rects[0].vertices, cube.vertices, 4 * sizeof(Point));
     memcpy(rects[1].vertices, &(cube.vertices[4]), 4 * sizeof(Point));
