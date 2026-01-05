@@ -10,38 +10,12 @@
 #include "View/shaders.h"
 #include "View/shape_stash.h"
 
-#ifdef LINUX
-#define GET_CHARACTER() getc(stdin)
-#include <stdbool.h>
-#include <sys/ioctl.h>
-#include <termios.h>
-bool kbhit() {
-    struct termios term;
-    tcgetattr(0, &term);
-
-    struct termios term2 = term;
-    term2.c_lflag &= ~ICANON;
-    tcsetattr(0, TCSANOW, &term2);
-
-    int byteswaiting;
-    ioctl(0, FIONREAD, &byteswaiting);
-
-    tcsetattr(0, TCSANOW, &term);
-
-    return byteswaiting > 0;
-}
-#endif
-#ifdef WINDOWS
-#define GET_CHARACTER getch
-#include <conio.h>
-#endif
-
-GLuint shaderProgram;
-
 static void _delay(int millis) {
     int t = clock();
     while (clock() - t < millis);
 }
+
+GLuint shaderProgram;
 
 void setUpOperator(Matrix* op, void (*f)(Matrix*, float), float angle) {
     op->values = (float**)malloc(3 * sizeof(float*));
@@ -54,8 +28,7 @@ void setUpOperator(Matrix* op, void (*f)(Matrix*, float), float angle) {
 
 Matrix yOpL;
 Matrix yOpR;
-Matrix yOpN;
-Matrix op;
+const float baseMovementAngle = 2.0f;
 
 void freeOperator(Matrix* op) {
     for (int i = 0; i < 3; i++) {
@@ -85,50 +58,57 @@ void runOnEntry() {
 
     glEnable(GL_COLOR_MATERIAL);
 
-    setUpOperator(&yOpL, generateYRotationOperator, 1.0f);
-    setUpOperator(&yOpR, generateYRotationOperator, -1.0f);
-    setUpOperator(&yOpN, generateYRotationOperator, .0f);
-    op = yOpN;
+    setUpOperator(&yOpL, generateYRotationOperator, baseMovementAngle);
+    setUpOperator(&yOpR, generateYRotationOperator, -baseMovementAngle);
 }
 
-enum Action { CROUCH = 'c', JUMP = ' ', LEFT = 'a', RIGHT = 'd', BACK = 's', FORWARD = 'w' };
+enum Action {
+    CROUCH = 'C',
+    JUMP = ' ',
+    LEFT = 'A',
+    RIGHT = 'D',
+    BACK = 'S',
+    FORWARD = 'W',
+    ROTATE_LEFT = 263,
+    ROTATE_RIGHT = 262,
+};
 
-static void _evaluatePressedButton(char button) {
-    op = yOpN;
-    switch (button) {
+int nonActionCounter = 0;
+int const crouchStandUpDelay = 29;
+
+void keyCallback(GLFWwindow*, int key, int, int, int) {
+    nonActionCounter = 0;
+    switch (key) {
         case CROUCH:
-            evaluateCrouch(CROUCHING_DOWN);
+            evaluateCrouch(&cube, CROUCHING_DOWN);
             return;
         case RIGHT:
-            op = yOpR;
+            move(DIR_RIGHT);
             break;
         case LEFT:
-            op = yOpL;
+            move(DIR_LEFT);
             break;
         case JUMP:
             initializeJump();
             break;
         case BACK:
-            moveObserver(DIR_BACKWARD);
+            move(DIR_BACKWARD);
             break;
         case FORWARD:
-            moveObserver(DIR_FORWARD);
+            move(DIR_FORWARD);
+            break;
+        case ROTATE_LEFT:
+            rotate(DIR_LEFT);
+            break;
+        case ROTATE_RIGHT:
+            rotate(DIR_RIGHT);
             break;
     }
-    evaluateCrouch(STANDING_UP);
+    evaluateCrouch(&cube, STANDING_UP);
 }
 
-int nonActionCounter = 0;
-int const crouchStandUpDelay = 30;
 static void _evaluateAction() {
-    if (!kbhit()) {
-        if (nonActionCounter++ > crouchStandUpDelay) evaluateCrouch(STANDING_UP);
-        return;
-    }
-    nonActionCounter = 0;
-    char button = GET_CHARACTER();
-    _evaluatePressedButton(button);
-    rotateObserver(op);
+    if (nonActionCounter++ > crouchStandUpDelay) evaluateCrouch(&cube, STANDING_UP);
 }
 
 void runMainLoop() {
@@ -142,5 +122,4 @@ void runOnExit() {
     glDeleteProgram(shaderProgram);
     freeOperator(&yOpL);
     freeOperator(&yOpR);
-    freeOperator(&yOpN);
 }

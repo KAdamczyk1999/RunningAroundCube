@@ -4,8 +4,10 @@
 extern "C" {
 #endif
 
+// clang-format off
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+// clang-format on
 
 #include "Common/types.h"
 
@@ -13,6 +15,8 @@ extern "C" {
 
 #define DIMENTION_COUNT 3
 #define COLOR_COUNT 3
+#define CUBE_VERTICES_COUNT 8
+#define RECT_VERTICES_COUNT 4
 
 typedef struct {
     float x;
@@ -34,11 +38,11 @@ typedef struct {
 } Circle;
 
 typedef struct {
-    Point vertices[8];
+    Point vertices[CUBE_VERTICES_COUNT];
 } Cube;
 
 typedef struct {
-    Point vertices[4];
+    Point vertices[RECT_VERTICES_COUNT];
     Color color;
 } Rect;
 
