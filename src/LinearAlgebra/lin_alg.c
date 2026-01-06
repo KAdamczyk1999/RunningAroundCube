@@ -132,12 +132,42 @@ float calculateDist(Point p1, Point p2) {
     return sqrtf(powf(p1.x - p2.x, 2.0f) + powf(p1.y - p2.y, 2.0f) + powf(p1.z - p2.z, 2.0f));
 }
 
+void simpleProjectRect(Rect* rect) {
+    for (int i = 0; i < 4; i++) {
+        rect->vertices[i].x /= rect->vertices[i].z;
+        rect->vertices[i].y /= rect->vertices[i].z;
+        rect->vertices[i].z = 0;
+    }
+}
+
 void projectRect(Rect* rect, Point pointOfView) {
     Point plainPoints[2];
     _findOthrogonalPoints(plainPoints, pointOfView);
     for (int i = 0; i < 4; i++) {
         rect->vertices[i] = _calculateProjection(rect->vertices[i], plainPoints);
     }
+}
+
+static void _centerRectAndPOV(Rect* rect, Point* pointOfView) {
+    float meanX = 0.0f;
+    float meanY = 0.0f;
+    float meanZ = 0.0f;
+    for (uint8_t i = 0; i < RECT_VERTICES_COUNT; i++) {
+        meanX += rect->vertices[i].x;
+        meanY += rect->vertices[i].y;
+        meanZ += rect->vertices[i].z;
+    }
+    meanX /= 4.0f;
+    meanY /= 4.0f;
+    meanZ /= 4.0f;
+    for (uint8_t i = 0; i < RECT_VERTICES_COUNT; i++) {
+        rect->vertices[i].x -= meanX;
+        rect->vertices[i].y -= meanY;
+        rect->vertices[i].z -= meanZ;
+    }
+    pointOfView->x -= meanX;
+    pointOfView->y -= meanY;
+    pointOfView->z -= meanZ;
 }
 
 float calculateRectArea(Rect rect) {
@@ -152,6 +182,7 @@ float calculateRectArea(Rect rect) {
 }
 
 float calculateRectProjectionArea(Rect rect, Point pointOfView) {
+    _centerRectAndPOV(&rect, &pointOfView);
     projectRect(&rect, pointOfView);
     return calculateRectArea(rect);
 }

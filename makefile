@@ -12,3 +12,6 @@ linux:
 
 run:
 	./bin/running_around_cube
+	
+clean:
+	rm ./bin/running_around_cube*

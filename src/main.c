@@ -1,5 +1,7 @@
+// clang-format off
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+// clang-format on
 #include <stdio.h>
 
 #include "View/main_view.h"
@@ -12,13 +14,14 @@ int main() {
 
     const int width = 1000;
     const int height = 1000;
-    GLFWwindow *window = glfwCreateWindow(width, height, "Running around cube", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(width, height, "Running around cube", NULL, NULL);
     if (window == NULL) {
         printf("Failed to create GLFW window\n");
         glfwTerminate();
         return -1;
     }
 
+    glfwSetKeyCallback(window, keyCallback);
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {

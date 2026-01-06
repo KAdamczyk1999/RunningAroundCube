@@ -20,6 +20,7 @@ float calculateDist(Point p1, Point p2);
 float calculateRectProjectionArea(Rect rect, Point pointOfVIew);
 float calculateRectArea(Rect rect);
 void projectRect(Rect* rect, Point pointOfView);
+void simpleProjectRect(Rect* rect);
 
 #ifdef UT
 float _calculateLineAngle(Point* lines);

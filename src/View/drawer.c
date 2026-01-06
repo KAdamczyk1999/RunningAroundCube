@@ -69,7 +69,11 @@ void drawCircle(Circle circle, GLuint shaderProgram) {
     for (int i = 0; i <= STEPS; i++) {
         Point newPoint = prevPoint;
         rotatePoint(&newPoint, angle, circle.centerPoint);
-        Point shapeVertices[3] = {circle.centerPoint, {prevPoint.x, prevPoint.y, 0.0f}, {newPoint.x, newPoint.y, 0.0f}};
+        Point shapeVertices[3] = {
+            circle.centerPoint,
+            {prevPoint.x, prevPoint.y, 0.0f},
+            {newPoint.x, newPoint.y, 0.0f},
+        };
         shapes[i].vertices = (Point*)malloc(sizeof(shapeVertices));
         memcpy(shapes[i].vertices, shapeVertices, sizeof(shapeVertices));
         shapes[i].verticesCount = 3;
@@ -113,27 +117,10 @@ static void _lightRects(Rect* rects) {
     }
 }
 
-static void _rotateRectsToCamera(Rect* rects) {
-    Matrix yOp;
-    setUpOperator(&yOp, generateYRotationOperator, getObserverAngle() / PI * 180.f + 90.0f);
-    for (int i = 0; i < CUBE_RECTS_COUNT; i++)
-        for (int j = 0; j < 4; j++) applyOperatorOn3dPoint(yOp, &(rects[i].vertices[j]));
-    freeOperator(&yOp);
-}
-
-static void _scaleCube(Cube* cube) {
-    Point observer = getObserver();
-    float observerProx = observer.x * observer.x + observer.z * observer.z;
-    float scale = 1.0f / observerProx;
-    for (int i = 0; i < sizeof(Cube) / sizeof(Point); i++) {
-        cube->vertices[i].x *= scale;
-        cube->vertices[i].y *= scale;
-        cube->vertices[i].z *= scale;
-    }
-}
-
 void drawCube(Cube cube, GLuint shaderPorgram) {
-    _scaleCube(&cube);
+    for (uint8_t i = 0; i < CUBE_VERTICES_COUNT; i++) {
+        if (cube.vertices[i].z < 0.0f) return;
+    }
     Rect rects[CUBE_RECTS_COUNT];
     memcpy(rects[0].vertices, cube.vertices, 4 * sizeof(Point));
     memcpy(rects[1].vertices, &(cube.vertices[4]), 4 * sizeof(Point));
@@ -153,7 +140,6 @@ void drawCube(Cube cube, GLuint shaderPorgram) {
     _lightRects(rects);
 
     qsort(rects, CUBE_RECTS_COUNT, sizeof(Rect), compareObserverProx);
-    for (int i = 0; i < CUBE_RECTS_COUNT; i++) projectRect(&rects[i], getObserver());
-    _rotateRectsToCamera(rects);
+    for (int i = 0; i < CUBE_RECTS_COUNT; i++) simpleProjectRect(&rects[i]);
     for (int i = 0; i < CUBE_RECTS_COUNT; i++) drawRect(rects[i], shaderPorgram);
 }
