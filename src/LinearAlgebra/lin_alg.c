@@ -5,6 +5,33 @@
 #include <stdlib.h>
 #include <string.h>
 
+void rotatePointX(Point* point, float angle) {
+    float angleRad = degsToRads(angle);
+    Point tempPoint;
+    tempPoint.x = point->x;
+    tempPoint.y = point->y * cos(angleRad) - point->z * sin(angleRad);
+    tempPoint.z = point->y * sin(angleRad) + point->z * cos(angleRad);
+    memcpy(point, &tempPoint, sizeof(Point));
+}
+
+void rotatePointY(Point* point, float angle) {
+    float angleRad = degsToRads(angle);
+    Point tempPoint;
+    tempPoint.x = point->x * cos(angleRad) + point->z * sin(angleRad);
+    tempPoint.y = point->y;
+    tempPoint.z = -point->x * sin(angleRad) + point->z * cos(angleRad);
+    memcpy(point, &tempPoint, sizeof(Point));
+}
+
+void rotatePointZ(Point* point, float angle) {
+    float angleRad = degsToRads(angle);
+    Point tempPoint;
+    tempPoint.x = point->x * cos(angleRad) - point->y * sin(angleRad);
+    tempPoint.y = point->y * sin(angleRad) + point->z * cos(angleRad);
+    tempPoint.z = point->z;
+    memcpy(point, &tempPoint, sizeof(Point));
+}
+
 void applyOperatorOn3dPoint(Matrix op, Point* point) {
     Point tempPoint;
     tempPoint.x = point->x * op.values[0][0] + point->y * op.values[0][1] + point->z * op.values[0][2];
