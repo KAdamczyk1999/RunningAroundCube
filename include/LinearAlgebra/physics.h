@@ -19,7 +19,7 @@ typedef enum { CROUCHING_DOWN, STANDING_UP } CrouchingState;
 
 void evaluateCrouch(Cube* cube, CrouchingState state);
 
-typedef enum { DIR_FORWARD, DIR_BACKWARD, DIR_LEFT, DIR_RIGHT } MoveDirection;
+typedef enum { DIR_FORWARD, DIR_BACKWARD, DIR_LEFT, DIR_RIGHT, DIR_UP, DIR_DOWN } MoveDirection;
 
 void move(MoveDirection dir);
 void rotate(MoveDirection dir);

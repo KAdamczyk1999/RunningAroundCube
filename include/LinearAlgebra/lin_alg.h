@@ -12,6 +12,9 @@ typedef struct {
     int columnCount;
 } Matrix;
 
+void rotatePointX(Point* point, float angle);
+void rotatePointY(Point* point, float angle);
+void rotatePointZ(Point* point, float angle);
 void applyOperatorOn3dPoint(Matrix op, Point* point);
 void generateXRotationOperator(Matrix* matrix, float angle);
 void generateYRotationOperator(Matrix* matrix, float angle);

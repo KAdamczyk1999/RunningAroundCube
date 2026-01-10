@@ -28,6 +28,8 @@ void setUpOperator(Matrix* op, void (*f)(Matrix*, float), float angle) {
 
 Matrix yOpL;
 Matrix yOpR;
+Matrix xOpU;
+Matrix xOpD;
 const float baseMovementAngle = 2.0f;
 
 void freeOperator(Matrix* op) {
@@ -35,6 +37,13 @@ void freeOperator(Matrix* op) {
         free(op->values[i]);
     }
     free(op->values);
+}
+
+static void setupOperators() {
+    setUpOperator(&xOpU, generateXRotationOperator, baseMovementAngle);
+    setUpOperator(&xOpD, generateXRotationOperator, -baseMovementAngle);
+    setUpOperator(&yOpL, generateYRotationOperator, baseMovementAngle);
+    setUpOperator(&yOpR, generateYRotationOperator, -baseMovementAngle);
 }
 
 void runOnEntry() {
@@ -58,8 +67,7 @@ void runOnEntry() {
 
     glEnable(GL_COLOR_MATERIAL);
 
-    setUpOperator(&yOpL, generateYRotationOperator, baseMovementAngle);
-    setUpOperator(&yOpR, generateYRotationOperator, -baseMovementAngle);
+    setupOperators();
 }
 
 enum Action {
@@ -69,8 +77,10 @@ enum Action {
     RIGHT = 'D',
     BACK = 'S',
     FORWARD = 'W',
-    ROTATE_LEFT = 263,
     ROTATE_RIGHT = 262,
+    ROTATE_LEFT = 263,
+    ROTATE_DOWN = 264,
+    ROTATE_UP = 265,
 };
 
 int nonActionCounter = 0;
@@ -102,6 +112,12 @@ void keyCallback(GLFWwindow*, int key, int, int, int) {
             break;
         case ROTATE_RIGHT:
             rotate(DIR_RIGHT);
+            break;
+        case ROTATE_UP:
+            rotate(DIR_UP);
+            break;
+        case ROTATE_DOWN:
+            rotate(DIR_DOWN);
             break;
     }
     evaluateCrouch(&cube, STANDING_UP);
