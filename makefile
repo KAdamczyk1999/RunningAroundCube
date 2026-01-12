@@ -13,5 +13,11 @@ linux:
 run:
 	./bin/running_around_cube
 	
+ifeq ($(OS),Windows_NT)
+  REMOVE=del .\bin\running_around_cube.exe
+else
+  REMOVE=rm ./bin/running_around_cube
+endif
 clean:
-	rm ./bin/running_around_cube*
+	$(REMOVE)
+
